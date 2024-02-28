@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter import ttk
+from random import *
+#import random 
 
 class App(Tk):
     def __init__(self):
@@ -24,6 +26,8 @@ class App(Tk):
     
     def start_game(self, mw):
         ttk.Label(mw, text="Opponent").grid(row=0, column=1)
+        self.opponent_ships = self.get_rand_ship_set()
+        print(len(self.opponent_ships))
         attack_field=self.create_field(mw, attack=True)
         attack_field.grid(row=1, column=1, sticky="e")
         self.convert_own_field(mw)
@@ -58,14 +62,11 @@ class App(Tk):
                         ttk.Button(field, text="#", width=width).grid(row=row, column=column)
                     else:
                         ttk.Button(field, text=" ", width=width).grid(row=row, column=column)
-
-
         return field
 
     def clicked(self, row, column, attack):
         if attack:
             if not (row, column) in self.attacked:
-                self.attacked.append((row, column))
                 if self.hit(row, column):
                     self.opponent_field_buttons[column+((row-1)*10)-1].config(text="X")
                 else:
@@ -82,11 +83,37 @@ class App(Tk):
                 self.selected.remove((row, column))
                 self.own_field_buttons[column+((row-1)*10)-1].config(text="")
                 print(f"UNselected {row} / {column}")
+        
+        # opponents strike code
     
     def hit(self, row, column):
-        if not len(self.opponent_ships) == 0:
-            return (row, column) in self.opponent_ships      
-        return False
-
+        self.attacked.append((row, column))
+        return (row, column) in self.opponent_ships      
+    
+    def get_rand_ship_set(self):
+        ship_sizes=[2, 3, 3, 4, 5]
+        ship_set=[]
+        for i, len in enumerate(ship_sizes):
+            new_ship = self.get_rand_ship(len, ship_set)
+            for coordinate in new_ship:
+                ship_set.append(coordinate)
+        return ship_set
+    
+    def get_rand_ship(self, len, ship_set):
+        valid = False
+        while not valid:
+            ship=[]
+            valid = True
+            direction = randint(0,2)
+            row_pos = randint(1, 12-len)
+            column_pos = randint(1, 12-len)
+            for _ in range(len):
+                if (row_pos, column_pos) in ship_set or (row_pos-1, column_pos) in ship_set:
+                    valid = False
+                    break
+                ship.append((row_pos, column_pos))
+                if direction: row_pos+=1 
+                else: column_pos+=1
+        return ship
 
 app = App()
